@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { saveSubmission } from '../../admin panel/submissionStorage';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import './Contact.css';
 
 const INITIAL = {
@@ -46,12 +46,17 @@ export default function Contact() {
   const [form, setForm] = useState(INITIAL);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+    if (submitError) {
+      setSubmitError('');
     }
   };
 
@@ -65,8 +70,9 @@ export default function Contact() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
 
     const phoneError = validatePhoneNumber(form.phone);
     if (phoneError) {
@@ -74,27 +80,61 @@ export default function Contact() {
       return;
     }
 
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      `Phone: ${form.phone}`,
-      `Target Role: ${form.role}`,
-      `Location: ${form.location}`,
-      `Message: ${form.message}`,
-    ].join('%0A');
+    if (!isSupabaseConfigured || !supabase) {
+      setSubmitError(
+        'Supabase client is not configured yet. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.'
+      );
+      return;
+    }
 
-    saveSubmission({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      role: form.role,
-      location: form.location,
-      message: form.message,
-    });
+    setIsSubmitting(true);
 
-    window.location.href = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
+    try {
+      // Connect to public.contact_submissions.
+      // Insert ONLY name, email, phone, role, location, and message.
+      // Let the database supply id, status, notes, and created_at.
+      // Do NOT call .select() on the public insert.
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert([
+          {
+            name: form.name.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            role: form.role.trim() || null,
+            location: form.location.trim() || null,
+            message: form.message.trim() || null,
+          },
+        ]);
+
+      if (error) {
+        console.error('Supabase contact submission error:', error);
+        setSubmitError(
+          error.message || 'Failed to submit enquiry. Please check your connection or contact us directly.'
+        );
+        return;
+      }
+
+      // Success: open mailto and display success message
+      const body = [
+        `Name: ${form.name}`,
+        `Email: ${form.email}`,
+        `Phone: ${form.phone}`,
+        `Target Role: ${form.role}`,
+        `Location: ${form.location}`,
+        `Message: ${form.message}`,
+      ].join('%0A');
+
+      window.location.href = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
+      setSubmitted(true);
+      setForm(INITIAL);
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err) {
+      console.error('Unexpected error submitting form:', err);
+      setSubmitError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -168,8 +208,14 @@ export default function Contact() {
           >
             {submitted && (
               <p className="form-success" role="status">
-                ✓ Your email client should have opened. We'll be in touch soon!
+                ✓ Your enquiry has been received! We'll be in touch soon.
               </p>
+            )}
+
+            {submitError && (
+              <div className="form-error-alert" role="alert">
+                ✕ {submitError}
+              </div>
             )}
 
             <form
@@ -276,8 +322,12 @@ export default function Contact() {
                 />
               </div>
 
-              <button type="submit" className="btn btn-dark form-submit">
-                Send enquiry
+              <button
+                type="submit"
+                className="btn btn-dark form-submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send enquiry'}
               </button>
             </form>
           </motion.div>

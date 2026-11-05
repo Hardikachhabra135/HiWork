@@ -180,6 +180,18 @@
   margin-bottom: 20px;
 }
 
+.form-error-alert {
+  background: rgba(217, 56, 58, 0.12);
+  border: 1.5px solid #D9383A;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #D9383A;
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .contact-body {

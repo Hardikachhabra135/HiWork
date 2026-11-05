@@ -188,6 +188,56 @@ export function resetSampleSubmissions() {
 }
 
 /**
+ * Export submissions as CSV download.
+ */
+export function exportToCSV(submissions) {
+  if (!submissions || submissions.length === 0) return;
+
+  const headers = ['ID', 'Date Received', 'Status', 'Candidate Name', 'Email', 'Phone', 'Target Role', 'Preferred Location', 'Candidate Message', 'Internal Admin Notes'];
+  const rows = submissions.map((s) => [
+    s.id,
+    new Date(s.submittedAt || s.created_at).toLocaleString(),
+    s.status,
+    `"${(s.name || '').replace(/"/g, '""')}"`,
+    `"${(s.email || '').replace(/"/g, '""')}"`,
+    `"${(s.phone || '').replace(/"/g, '""')}"`,
+    `"${(s.role || '').replace(/"/g, '""')}"`,
+    `"${(s.location || '').replace(/"/g, '""')}"`,
+    `"${(s.message || '').replace(/"/g, '""')}"`,
+    `"${(s.notes || '').replace(/"/g, '""')}"`,
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `hiwork_contact_enquiries_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Export submissions as JSON download.
+ */
+export function exportToJSON(submissions) {
+  if (!submissions || submissions.length === 0) return;
+
+  const jsonStr = JSON.stringify(submissions, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `hiwork_contact_enquiries_${new Date().toISOString().slice(0, 10)}.json`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
  * Export submissions as genuine Microsoft Excel spreadsheet (.xlsx).
  */
 export async function exportToExcel(submissions) {
