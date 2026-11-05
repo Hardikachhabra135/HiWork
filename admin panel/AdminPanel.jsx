@@ -5,8 +5,7 @@ import {
   deleteSubmission,
   clearAllSubmissions,
   resetSampleSubmissions,
-  exportToCSV,
-  exportToJSON,
+  exportToExcel,
 } from './submissionStorage';
 import './AdminPanel.css';
 
@@ -192,25 +191,20 @@ export default function AdminPanel({ onBack }) {
           <div className="admin-export-btns">
             <button
               type="button"
-              className="btn btn-outline"
-              onClick={() => {
-                exportToCSV(filteredSubmissions);
-                showToast('Downloaded submissions CSV');
+              className="btn btn-excel-export"
+              onClick={async () => {
+                try {
+                  await exportToExcel(filteredSubmissions);
+                  showToast('Downloaded enquiries as Excel (.xlsx)');
+                } catch {
+                  showToast('Failed to export Excel file. Please try again.');
+                }
               }}
               disabled={filteredSubmissions.length === 0}
+              title="Download contact form enquiries as Microsoft Excel spreadsheet (.xlsx)"
             >
-              Export CSV
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => {
-                exportToJSON(filteredSubmissions);
-                showToast('Downloaded submissions JSON');
-              }}
-              disabled={filteredSubmissions.length === 0}
-            >
-              Export JSON
+              <span className="excel-icon" aria-hidden="true">📊</span>
+              Export to Excel (.xlsx)
             </button>
           </div>
         </div>

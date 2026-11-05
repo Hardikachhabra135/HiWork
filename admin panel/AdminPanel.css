@@ -138,6 +138,39 @@
   gap: 12px;
 }
 
+.btn-excel-export {
+  background: var(--color-ink);
+  color: var(--color-lime);
+  border: 1.5px solid var(--color-ink);
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn-excel-export:hover:not(:disabled) {
+  background: var(--color-mid-green);
+  border-color: var(--color-mid-green);
+  color: var(--color-white);
+  transform: translateY(-1px);
+}
+
+.btn-excel-export:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.excel-icon {
+  font-size: 15px;
+}
+
 .btn-outline {
   background: var(--color-white);
   border: 1.5px solid var(--color-border);

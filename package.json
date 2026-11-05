@@ -12,7 +12,8 @@
   "dependencies": {
     "framer-motion": "^14.9.1",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "zipcelx": "^1.6.2"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

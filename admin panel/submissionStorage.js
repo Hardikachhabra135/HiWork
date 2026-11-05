@@ -3,6 +3,8 @@
  * Manages storage, retrieval, status updates, and export of contact form enquiries.
  */
 
+import zipcelx from 'zipcelx';
+
 const STORAGE_KEY = 'hiwork_submissions';
 
 export const SAMPLE_SUBMISSIONS = [
@@ -186,49 +188,96 @@ export function resetSampleSubmissions() {
 }
 
 /**
- * Export submissions as CSV download.
+ * Export submissions as genuine Microsoft Excel spreadsheet (.xlsx).
  */
-export function exportToCSV(submissions) {
+export async function exportToExcel(submissions) {
   if (!submissions || submissions.length === 0) return;
 
-  const headers = ['ID', 'Date', 'Status', 'Name', 'Email', 'Phone', 'Role', 'Location', 'Message', 'Notes'];
-  const rows = submissions.map((s) => [
-    s.id,
-    new Date(s.submittedAt).toLocaleString(),
-    s.status,
-    `"${(s.name || '').replace(/"/g, '""')}"`,
-    `"${(s.email || '').replace(/"/g, '""')}"`,
-    `"${(s.phone || '').replace(/"/g, '""')}"`,
-    `"${(s.role || '').replace(/"/g, '""')}"`,
-    `"${(s.location || '').replace(/"/g, '""')}"`,
-    `"${(s.message || '').replace(/"/g, '""')}"`,
-    `"${(s.notes || '').replace(/"/g, '""')}"`,
+  const filename = `hiwork_contact_enquiries_${new Date().toISOString().slice(0, 10)}`;
+
+  const headerRow = [
+    { value: 'ID', type: 'string' },
+    { value: 'Date Received', type: 'string' },
+    { value: 'Status', type: 'string' },
+    { value: 'Candidate Name', type: 'string' },
+    { value: 'Email', type: 'string' },
+    { value: 'Phone', type: 'string' },
+    { value: 'Target Role', type: 'string' },
+    { value: 'Preferred Location', type: 'string' },
+    { value: 'Candidate Message', type: 'string' },
+    { value: 'Internal Admin Notes', type: 'string' },
+  ];
+
+  const dataRows = submissions.map((s) => [
+    { value: String(s.id || ''), type: 'string' },
+    {
+      value: new Date(s.submittedAt).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+      type: 'string',
+    },
+    { value: String(s.status || 'new').toUpperCase(), type: 'string' },
+    { value: String(s.name || ''), type: 'string' },
+    { value: String(s.email || ''), type: 'string' },
+    { value: String(s.phone || ''), type: 'string' },
+    { value: String(s.role || 'Not specified'), type: 'string' },
+    { value: String(s.location || 'Not specified'), type: 'string' },
+    { value: String(s.message || ''), type: 'string' },
+    { value: String(s.notes || ''), type: 'string' },
   ]);
 
-  const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `hiwork_contact_submissions_${new Date().toISOString().slice(0, 10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    await zipcelx({
+      filename,
+      sheet: {
+        data: [headerRow, ...dataRows],
+      },
+    });
+  } catch (error) {
+    console.warn('zipcelx export error, downloading Excel XML:', error);
+    exportToExcelXml(submissions, filename);
+  }
 }
 
 /**
- * Export submissions as JSON download.
+ * Fallback Excel XML Spreadsheet (.xls) format
  */
-export function exportToJSON(submissions) {
-  if (!submissions || submissions.length === 0) return;
+function exportToExcelXml(submissions, filename) {
+  const headers = ['ID', 'Date Received', 'Status', 'Candidate Name', 'Email', 'Phone', 'Target Role', 'Preferred Location', 'Candidate Message', 'Internal Admin Notes'];
+  const xmlRows = submissions.map((s) => `
+    <Row>
+      <Cell><Data ss:Type="String">${s.id || ''}</Data></Cell>
+      <Cell><Data ss:Type="String">${new Date(s.submittedAt).toLocaleString('en-IN')}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.status || '').toUpperCase()}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>
+      <Cell><Data ss:Type="String">${s.email || ''}</Data></Cell>
+      <Cell><Data ss:Type="String">${s.phone || ''}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.role || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.location || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.message || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>
+      <Cell><Data ss:Type="String">${(s.notes || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>
+    </Row>`).join('');
 
-  const jsonStr = JSON.stringify(submissions, null, 2);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="Enquiries">
+  <Table>
+    <Row>
+      ${headers.map((h) => `<Cell><Data ss:Type="String">${h}</Data></Cell>`).join('')}
+    </Row>
+    ${xmlRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+  const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `hiwork_contact_submissions_${new Date().toISOString().slice(0, 10)}.json`);
+  link.href = url;
+  link.download = `${filename}.xls`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
