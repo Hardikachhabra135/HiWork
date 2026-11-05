@@ -44,7 +44,7 @@ function cleanPhoneForWhatsApp(phone) {
   return phone.replace(/\D/g, '');
 }
 
-export default function AdminPanel({ onBack }) {
+export default function AdminPanel() {
   // Auth state
   const [session, setSession] = useState(null);
   const [authChecking, setAuthChecking] = useState(() => Boolean(supabase));
@@ -412,14 +412,6 @@ export default function AdminPanel({ onBack }) {
               {authLoading ? 'Signing in...' : 'Sign In to Admin Portal'}
             </button>
           </form>
-
-          <button
-            type="button"
-            className="btn-back-link"
-            onClick={onBack}
-          >
-            ← Back to Website
-          </button>
         </div>
       </div>
     );
@@ -460,14 +452,6 @@ export default function AdminPanel({ onBack }) {
             title="Sign out of Supabase session"
           >
             Sign Out
-          </button>
-          <button
-            type="button"
-            className="btn btn-back-site"
-            onClick={onBack}
-            aria-label="Return to Hiwork public website"
-          >
-            ← Back to Website
           </button>
         </div>
       </header>
@@ -678,15 +662,6 @@ export default function AdminPanel({ onBack }) {
                     ? 'No submissions match your active filter or search keywords.'
                     : 'No contact form enquiries have been saved to public.contact_submissions yet.'}
                 </p>
-                <div className="empty-actions">
-                  <button
-                    type="button"
-                    className="btn btn-dark"
-                    onClick={onBack}
-                  >
-                    Go to Website Form
-                  </button>
-                </div>
               </div>
             ) : (
               <div className="admin-table-container">
