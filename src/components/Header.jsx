@@ -7,11 +7,16 @@ const NAV_LINKS = [
   { label: 'Pricing',  href: '#pricing' },
   { label: 'About',    href: '#about' },
   { label: 'Contact',  href: '#contact' },
+  { label: 'Admin',    href: '#admin' },
 ];
 
 export default function Header() {
   const handleNav = (e, href) => {
     e.preventDefault();
+    if (href === '#admin') {
+      window.location.hash = '#admin';
+      return;
+    }
     const target = document.querySelector(href);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });

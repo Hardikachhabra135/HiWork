@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import Header  from './components/Header';
@@ -8,8 +8,33 @@ import Pricing  from './components/Pricing';
 import About    from './components/About';
 import Contact  from './components/Contact';
 import Footer   from './components/Footer';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
+  const [isAdminView, setIsAdminView] = useState(() => {
+    return window.location.hash === '#admin';
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setIsAdminView(window.location.hash === '#admin');
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  if (isAdminView) {
+    return (
+      <AdminPanel
+        onBack={() => {
+          window.location.hash = '#home';
+          setIsAdminView(false);
+        }}
+      />
+    );
+  }
+
   return (
     <>
       {/* ── Dark Hero Block (header + hero, rounded bottom) ── */}

@@ -16,6 +16,7 @@ export default function Footer() {
 
         {/* Footer nav */}
         <nav className="footer-nav" aria-label="Footer navigation">
+          <a href="#admin" className="footer-nav__link">Admin</a>
           <a href="#privacy" className="footer-nav__link">Privacy</a>
           <a href="#terms"   className="footer-nav__link">Terms</a>
         </nav>

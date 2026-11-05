@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { saveSubmission } from '../services/submissionStorage';
 import './Contact.css';
 
 const INITIAL = {
@@ -82,21 +83,14 @@ export default function Contact() {
       `Message: ${form.message}`,
     ].join('%0A');
 
-    try {
-      const existing = JSON.parse(localStorage.getItem('hiwork_submissions') || '[]');
-      const newSubmission = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        role: form.role,
-        location: form.location,
-        message: form.message,
-        submittedAt: new Date().toISOString(),
-      };
-      localStorage.setItem('hiwork_submissions', JSON.stringify([...existing, newSubmission]));
-    } catch {
-      // Ignore if localStorage is unavailable
-    }
+    saveSubmission({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      role: form.role,
+      location: form.location,
+      message: form.message,
+    });
 
     window.location.href = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
     setSubmitted(true);
