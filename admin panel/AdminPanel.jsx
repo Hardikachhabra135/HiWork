@@ -207,8 +207,11 @@ export default function AdminPanel() {
 
     setAuthLoading(true);
     try {
+      const trimmed = authEmail.trim();
+      const emailToUse = trimmed.includes('@') ? trimmed : `${trimmed}@hiwork.com`;
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: authEmail.trim(),
+        email: emailToUse,
         password: authPassword,
       });
 
@@ -377,16 +380,16 @@ export default function AdminPanel() {
 
           <form className="admin-auth-form" onSubmit={handleSignIn} noValidate>
             <div className="form-group">
-              <label className="form-label" htmlFor="admin-email">Admin Email</label>
+              <label className="form-label" htmlFor="admin-email">Username or Email</label>
               <input
                 id="admin-email"
-                type="email"
+                type="text"
                 className="form-input"
-                placeholder="admin@example.com"
+                placeholder="admin or admin@hiwork.com"
                 value={authEmail}
                 onChange={(e) => setAuthEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 
