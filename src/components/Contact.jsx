@@ -5,30 +5,98 @@ import './Contact.css';
 const INITIAL = {
   name: '',
   email: '',
+  phone: '',
   role: '',
   location: '',
   message: '',
 };
 
+const validatePhoneNumber = (value) => {
+  if (!value || !value.trim()) {
+    return 'Phone number cannot be empty.';
+  }
+
+  const trimmed = value.trim();
+
+  // Pattern: optional single leading '+', then only digits, spaces, hyphens, parentheses, and dots
+  const validPattern = /^\+?[0-9\s\-().]+$/;
+  if (!validPattern.test(trimmed)) {
+    return 'Please enter a valid phone number.';
+  }
+
+  const digitsOnly = trimmed.replace(/\D/g, '');
+
+  if (trimmed.startsWith('+91')) {
+    const after91 = digitsOnly.slice(2);
+    if (after91.length !== 10) {
+      return 'Indian phone numbers with +91 must have 10 digits.';
+    }
+    return '';
+  }
+
+  if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+    return 'Phone number must be between 7 and 15 digits.';
+  }
+
+  return '';
+};
+
 export default function Contact() {
   const [form, setForm] = useState(INITIAL);
+  const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'phone' && value.trim()) {
+      const err = validatePhoneNumber(value);
+      if (err) {
+        setErrors((prev) => ({ ...prev, phone: err }));
+      }
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const phoneError = validatePhoneNumber(form.phone);
+    if (phoneError) {
+      setErrors((prev) => ({ ...prev, phone: phoneError }));
+      return;
+    }
+
     const body = [
       `Name: ${form.name}`,
       `Email: ${form.email}`,
+      `Phone: ${form.phone}`,
       `Target Role: ${form.role}`,
       `Location: ${form.location}`,
       `Message: ${form.message}`,
     ].join('%0A');
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('hiwork_submissions') || '[]');
+      const newSubmission = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        role: form.role,
+        location: form.location,
+        message: form.message,
+        submittedAt: new Date().toISOString(),
+      };
+      localStorage.setItem('hiwork_submissions', JSON.stringify([...existing, newSubmission]));
+    } catch {
+      // Ignore if localStorage is unavailable
+    }
 
     window.location.href = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
     setSubmitted(true);
@@ -38,36 +106,36 @@ export default function Contact() {
   return (
     <section id="contact" className="contact-section" aria-labelledby="contact-heading">
       <div className="container">
-        {/* Section header */}
-        <div className="contact-header">
-          <span className="eyebrow contact-eyebrow">Contact</span>
-          <h2 id="contact-heading" className="section-heading contact-heading">
-            Let us help you plan your next step.
-          </h2>
-          <p className="contact-subtext">
-            Want to apply? Tell us a little about your goals and our team can guide you to a suitable support option.
-          </p>
-          <p className="contact-links">
-            Or email{' '}
-            <a href="mailto:harshdabas0987@gmail.com" className="contact-link">
-              harshdabas0987@gmail.com
-            </a>
-            {' '}|{' '}
-            WhatsApp{' '}
-            <a
-              href="https://wa.me/917428311662"
-              className="contact-link"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              7428311662
-            </a>
-          </p>
-        </div>
-
         {/* Two-column layout */}
         <div className="contact-body">
-          {/* Info pane (left) */}
+          {/* Section header & intro (left column, top) */}
+          <div className="contact-header">
+            <span className="eyebrow contact-eyebrow">Contact</span>
+            <h2 id="contact-heading" className="section-heading contact-heading">
+              Let us help you plan your next step.
+            </h2>
+            <p className="contact-subtext">
+              Want to apply? Tell us a little about your goals and our team can guide you to a suitable support option.
+            </p>
+            <p className="contact-links">
+              Or email{' '}
+              <a href="mailto:harshdabas0987@gmail.com" className="contact-link">
+                harshdabas0987@gmail.com
+              </a>
+              {' '}|{' '}
+              WhatsApp{' '}
+              <a
+                href="https://wa.me/917428311662"
+                className="contact-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                7428311662
+              </a>
+            </p>
+          </div>
+
+          {/* Info pane (left column, bottom) */}
           <motion.div
             className="contact-info"
             initial={{ opacity: 0, x: -20 }}
@@ -146,6 +214,30 @@ export default function Contact() {
                   required
                   autoComplete="email"
                 />
+              </div>
+
+              {/* PHONE */}
+              <div className="form-group">
+                <label htmlFor="cf-phone" className="form-label">Phone</label>
+                <input
+                  id="cf-phone"
+                  name="phone"
+                  type="tel"
+                  className={`form-input${errors.phone ? ' form-input--error' : ''}`}
+                  placeholder="Enter your phone number"
+                  value={form.phone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  autoComplete="tel"
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? 'cf-phone-error' : undefined}
+                />
+                {errors.phone && (
+                  <span id="cf-phone-error" className="form-error" role="alert">
+                    {errors.phone}
+                  </span>
+                )}
               </div>
 
               {/* TARGET ROLE */}
