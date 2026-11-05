@@ -8,7 +8,7 @@ import Pricing  from './components/Pricing';
 import About    from './components/About';
 import Contact  from './components/Contact';
 import Footer   from './components/Footer';
-import AdminPanel from './components/AdminPanel';
+import AdminPanel from '../admin panel';
 
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(() => {

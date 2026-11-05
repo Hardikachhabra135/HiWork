@@ -234,3 +234,4 @@ export function exportToJSON(submissions) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+

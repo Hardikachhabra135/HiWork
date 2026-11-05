@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { saveSubmission } from '../services/submissionStorage';
+import { saveSubmission } from '../../admin panel/submissionStorage';
 import './Contact.css';
 
 const INITIAL = {

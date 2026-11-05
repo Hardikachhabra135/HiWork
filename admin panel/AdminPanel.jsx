@@ -7,7 +7,7 @@ import {
   resetSampleSubmissions,
   exportToCSV,
   exportToJSON,
-} from '../services/submissionStorage';
+} from './submissionStorage';
 import './AdminPanel.css';
 
 const STATUS_CONFIG = {
@@ -665,3 +665,4 @@ export default function AdminPanel({ onBack }) {
     </div>
   );
 }
+
