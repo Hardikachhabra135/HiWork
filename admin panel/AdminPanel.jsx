@@ -100,16 +100,18 @@ export default function AdminPanel() {
     setRlsError(null);
 
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from('contact_submissions')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase RLS or query error:', error);
-        // Treat Supabase RLS as the authority for admin access.
-        // Never expose submissions to signed-out users or rely only on hiding the admin UI.
-        // If the admin cannot read rows, show a clear access/configuration message instead of weakening security.
+        console.error('[HiWork Admin] Fetch enquiries failed:', {
+          code: error.code,
+          message: error.message,
+          hint: error.hint,
+          status,
+        });
         setRlsError(
           error.message ||
             'Access denied by Supabase Row-Level Security (RLS). Please ensure an authorized SELECT policy exists on public.contact_submissions.'
@@ -117,6 +119,8 @@ export default function AdminPanel() {
         setSubmissions([]);
         return;
       }
+
+      console.info(`[HiWork Admin] Query successful (status ${status}). Loaded ${data?.length || 0} enquiry record(s).`);
 
       // Map created_at to existing timestamp display and preserve status values: new, in_review, contacted, closed
       const mapped = (data || []).map((row) => ({
@@ -137,7 +141,7 @@ export default function AdminPanel() {
 
       setSubmissions(mapped);
     } catch (err) {
-      console.error('Unexpected error fetching submissions:', err);
+      console.error('[HiWork Admin] Unexpected error fetching submissions:', err?.message || err);
       setRlsError('An unexpected error occurred while communicating with Supabase.');
     } finally {
       setLoading(false);
@@ -663,8 +667,14 @@ export default function AdminPanel() {
                 <p>
                   {searchTerm || statusFilter !== 'all'
                     ? 'No submissions match your active filter or search keywords.'
-                    : 'No contact form enquiries have been saved to public.contact_submissions yet.'}
+                    : 'No contact form enquiries are visible yet.'}
                 </p>
+                {!searchTerm && statusFilter === 'all' && (
+                  <div className="admin-empty-hint">
+                    <strong>RLS Policy Requirement:</strong> If enquiries were submitted on the public website but do not display here, ensure an active Row-Level Security <code>SELECT</code> policy exists in Supabase:
+                    <code>CREATE POLICY "Allow authenticated read" ON public.contact_submissions FOR SELECT TO authenticated USING (true);</code>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="admin-table-container">

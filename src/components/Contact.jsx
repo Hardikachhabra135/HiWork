@@ -94,7 +94,7 @@ export default function Contact() {
       // Insert ONLY name, email, phone, role, location, and message.
       // Let the database supply id, status, notes, and created_at.
       // Do NOT call .select() on the public insert.
-      const { error } = await supabase
+      const { error, status } = await supabase
         .from('contact_submissions')
         .insert([
           {
@@ -108,12 +108,18 @@ export default function Contact() {
         ]);
 
       if (error) {
-        console.error('Supabase contact submission error:', error);
+        console.error('[HiWork Contact] Submission insert failed:', {
+          code: error.code,
+          message: error.message,
+          status,
+        });
         setSubmitError(
           error.message || 'Failed to submit enquiry. Please check your connection or contact us directly.'
         );
         return;
       }
+
+      console.info('[HiWork Contact] Submission successfully recorded in public.contact_submissions (HTTP', status, ')');
 
       // Success: open mailto and display success message
       const body = [
@@ -130,7 +136,7 @@ export default function Contact() {
       setForm(INITIAL);
       setTimeout(() => setSubmitted(false), 6000);
     } catch (err) {
-      console.error('Unexpected error submitting form:', err);
+      console.error('[HiWork Contact] Unexpected error submitting form:', err?.message || err);
       setSubmitError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
