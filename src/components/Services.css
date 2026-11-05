@@ -1,0 +1,79 @@
+/* ── Services Section ───────────────────────────────────── */
+.services-section {
+  padding: var(--section-py) 0;
+}
+
+.services-header {
+  text-align: center;
+  max-width: 640px;
+  margin-inline: auto;
+  margin-bottom: 56px;
+}
+
+.services-eyebrow {
+  color: var(--color-mid-green);
+}
+
+.services-heading {
+  font-size: clamp(32px, 4vw, 56px);
+  margin-bottom: 16px;
+}
+
+.services-subtext {
+  font-size: 17px;
+  color: var(--color-muted-light);
+  line-height: 1.6;
+}
+
+/* ── Grid ───────────────────────────────────────────────── */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+.service-card {
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 32px 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow var(--transition);
+  cursor: default;
+}
+
+.service-card__num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--color-lime);
+  -webkit-text-stroke: 1.5px var(--color-ink);
+  text-stroke: 1.5px var(--color-ink);
+  letter-spacing: -1px;
+}
+
+.service-card__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--color-ink);
+  line-height: 1.2;
+}
+
+.service-card__desc {
+  font-size: 15px;
+  color: var(--color-muted-light);
+  line-height: 1.65;
+  flex: 1;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}

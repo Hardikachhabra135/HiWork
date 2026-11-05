@@ -1,0 +1,185 @@
+/* ── Pricing Section ────────────────────────────────────── */
+.pricing-section {
+  padding: var(--section-py) 0;
+}
+
+.pricing-header {
+  text-align: center;
+  max-width: 600px;
+  margin-inline: auto;
+  margin-bottom: 56px;
+}
+
+.pricing-eyebrow {
+  color: var(--color-mid-green);
+}
+
+.pricing-heading {
+  font-size: clamp(32px, 4vw, 56px);
+  margin-bottom: 14px;
+}
+
+.pricing-subtext {
+  font-size: 16px;
+  color: var(--color-muted-light);
+  line-height: 1.6;
+}
+
+/* ── Grid ───────────────────────────────────────────────── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* ── Card Base ──────────────────────────────────────────── */
+.pricing-card {
+  border-radius: var(--radius-pricing-card);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.pricing-card--light {
+  background: var(--color-white);
+  border: 1.5px solid var(--color-ink);
+}
+
+.pricing-card--dark {
+  background: var(--color-ink);
+  border: 1.5px solid var(--color-dark-stroke);
+}
+
+/* ── Label ──────────────────────────────────────────────── */
+.pricing-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--color-mid-green);
+}
+
+.pricing-label--lime {
+  color: var(--color-lime);
+}
+
+/* ── Price ──────────────────────────────────────────────── */
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pricing-amount {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: -1px;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.pricing-card--dark .pricing-amount {
+  color: var(--color-white);
+}
+
+.pricing-period {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-muted-light);
+}
+
+.pricing-period--light {
+  color: var(--color-muted-dark);
+}
+
+/* ── Badge ──────────────────────────────────────────────── */
+.pricing-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  background: var(--color-lime);
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+}
+
+.pricing-badge--outline {
+  background: transparent;
+  border: 1.5px solid var(--color-lime);
+  color: var(--color-lime);
+}
+
+/* ── Bullets ────────────────────────────────────────────── */
+.pricing-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.pricing-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--color-muted-light);
+  line-height: 1.55;
+}
+
+.pricing-bullets--dark .pricing-bullet {
+  color: var(--color-muted-dark);
+}
+
+.pricing-bullet__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-mid-green);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.pricing-bullets--dark .pricing-bullet__dot {
+  background: var(--color-lime);
+}
+
+/* ── "Everything in Starter" line ───────────────────────── */
+.pricing-everything {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-lime);
+  letter-spacing: 0.2px;
+}
+
+/* ── CTA ────────────────────────────────────────────────── */
+.pricing-cta {
+  align-self: flex-start;
+  min-width: 140px;
+  margin-top: auto;
+}
+
+/* ── Disclaimer ─────────────────────────────────────────── */
+.pricing-disclaimer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-muted-light);
+  line-height: 1.6;
+  max-width: 580px;
+  margin-inline: auto;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .pricing-card {
+    padding: 28px 24px 32px;
+  }
+}

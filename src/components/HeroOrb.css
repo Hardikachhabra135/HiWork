@@ -1,0 +1,30 @@
+/* ── Hero Orb ────────────────────────────────────────────── */
+.hero-orb {
+  width: 100%;
+  height: auto;
+  max-width: 340px;
+}
+
+/* Rotation keyframes */
+@keyframes orb-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.orb-rotate--outer {
+  transform-origin: 160px 160px;
+  animation: orb-spin 40s linear infinite;
+}
+
+.orb-rotate--mid {
+  transform-origin: 160px 160px;
+  animation: orb-spin 40s linear infinite reverse;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .orb-rotate--outer,
+  .orb-rotate--mid {
+    animation: none;
+  }
+}

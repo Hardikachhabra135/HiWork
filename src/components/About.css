@@ -1,0 +1,118 @@
+/* ── About Section ──────────────────────────────────────── */
+.about-section {
+  padding: var(--section-py) 0;
+}
+
+/* ── Sage Panel ─────────────────────────────────────────── */
+.about-panel {
+  background: var(--color-sage);
+  border-radius: var(--radius-about);
+  padding: 72px 64px;
+  display: flex;
+  gap: 64px;
+  align-items: flex-start;
+}
+
+/* ── Left Column ────────────────────────────────────────── */
+.about-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.about-eyebrow {
+  color: var(--color-mid-green);
+}
+
+.about-heading {
+  font-size: clamp(28px, 3.5vw, 48px);
+  color: var(--color-ink);
+  margin-bottom: 24px;
+}
+
+.about-body {
+  font-size: 16px;
+  color: var(--color-muted-light);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.about-divider {
+  border: none;
+  border-top: 1.5px solid var(--color-border);
+  margin-bottom: 24px;
+}
+
+.about-pledge {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+
+/* ── Right Column – Steps ───────────────────────────────── */
+.about-right {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-step {
+  background: var(--color-white);
+  border-radius: 20px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.about-step--dark {
+  background: var(--color-ink);
+}
+
+.about-step__num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 36px;
+  color: var(--color-ink);
+  line-height: 1;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+}
+
+.about-step__num--lime {
+  color: var(--color-lime);
+}
+
+.about-step__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--color-ink);
+  line-height: 1.1;
+}
+
+.about-step--dark .about-step__label {
+  color: var(--color-white);
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .about-panel {
+    flex-direction: column;
+    padding: 48px 36px;
+    gap: 40px;
+  }
+
+  .about-right {
+    flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .about-panel {
+    padding: 36px 24px;
+    border-radius: 24px;
+  }
+}
