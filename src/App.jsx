@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
 
 import Header  from './components/Header';
@@ -9,23 +9,8 @@ import Compare  from './components/Compare';
 import About    from './components/About';
 import Contact  from './components/Contact';
 import Footer   from './components/Footer';
-import AdminPanel from '../admin panel/AdminPanel';
 
 export default function App() {
-  const [isAdmin, setIsAdmin] = useState(() => window.location.hash === '#admin');
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      setIsAdmin(window.location.hash === '#admin');
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  if (isAdmin) {
-    return <AdminPanel />;
-  }
-
   return (
     <>
       {/* ── Dark Hero Block (header + hero, rounded bottom) ── */}
