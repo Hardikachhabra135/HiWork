@@ -49,10 +49,10 @@
 **Hiwork** provides personalized, practical job-search guidance without unrealistic guarantees or over-promising. The website is crafted with a bold dark-ink and lime visual identity, precision responsive layouts, smooth anchor scrolling, and accessible interactive states.
 
 ### Key Highlights
-- **Single-page experience:** Effortless anchor navigation between Hero, Services, Pricing, About, and Contact.
+- **Single-page experience:** Effortless anchor navigation between Hero, Services, Pricing, Compare, About, and Contact.
 - **Pixel-perfect layout:** Aligned container geometry (1200px cap with 24px side gutters).
 - **Subtle motion design:** Framer Motion staggered entrance on load and a 40s concentric orbital SVG indicator that respects `prefers-reduced-motion`.
-- **Zero backend required:** Contact enquiry form composes a structured `mailto:` payload directly for instant outreach.
+- **Full Contact & Admin Pipeline:** Contact enquiries persist to Supabase `public.contact_submissions` with dual-storage fallback and automatic `mailto:` outreach, managed securely through the dedicated Admin Panel.
 
 ---
 
