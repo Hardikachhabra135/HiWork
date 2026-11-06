@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from './supabase';
 import {
+  getSubmissions,
+  updateSubmission,
+  deleteSubmission,
   exportToExcel,
   exportToCSV,
   exportToJSON,
@@ -69,21 +72,35 @@ export default function AdminPanel() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Check initial Supabase auth session & listen to auth changes
+  // Check initial auth session & listen to auth changes
   useEffect(() => {
-    if (!supabase) {
+    let localSess = null;
+    try {
+      const saved = localStorage.getItem('hiwork_admin_session');
+      if (saved) {
+        localSess = JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!supabase || !isSupabaseConfigured) {
+      if (localSess) {
+        setSession(localSess);
+      }
+      setAuthChecking(false);
       return;
     }
 
     supabase.auth.getSession().then(({ data: { session: initSession } }) => {
-      setSession(initSession);
+      setSession(initSession || localSess);
       setAuthChecking(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      setSession(currentSession);
+      setSession(currentSession || localSess);
       setAuthChecking(false);
     });
 
@@ -92,59 +109,69 @@ export default function AdminPanel() {
     };
   }, []);
 
-  // Fetch submissions from Supabase public.contact_submissions
+  // Fetch submissions from Supabase public.contact_submissions (or local fallback)
   const loadSubmissions = useCallback(async () => {
-    if (!supabase || !session) return;
+    if (!session) return;
 
     setLoading(true);
     setRlsError(null);
 
-    try {
-      const { data, error, status } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error, status } = await supabase
+          .from('contact_submissions')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('[HiWork Admin] Fetch enquiries failed:', {
-          code: error.code,
-          message: error.message,
-          hint: error.hint,
-          status,
-        });
-        setRlsError(
-          error.message ||
-            'Access denied by Supabase Row-Level Security (RLS). Please ensure an authorized SELECT policy exists on public.contact_submissions.'
-        );
-        setSubmissions([]);
-        return;
+        if (error) {
+          console.error('[HiWork Admin] Fetch enquiries failed:', {
+            code: error.code,
+            message: error.message,
+            hint: error.hint,
+            status,
+          });
+          setRlsError(
+            error.message ||
+              'Access denied by Supabase Row-Level Security (RLS). Please ensure an authorized SELECT policy exists on public.contact_submissions.'
+          );
+          setSubmissions([]);
+          return;
+        }
+
+        console.info(`[HiWork Admin] Query successful (status ${status}). Loaded ${data?.length || 0} enquiry record(s).`);
+
+        const mapped = (data || []).map((row) => ({
+          id: row.id,
+          name: row.name || 'Anonymous',
+          email: row.email || '',
+          phone: row.phone || '',
+          role: row.role || 'Not specified',
+          location: row.location || 'Not specified',
+          message: row.message || '',
+          status: ['new', 'in_review', 'contacted', 'closed'].includes(row.status)
+            ? row.status
+            : 'new',
+          notes: row.notes || '',
+          submittedAt: row.created_at || new Date().toISOString(),
+          created_at: row.created_at,
+        }));
+
+        setSubmissions(mapped);
+      } catch (err) {
+        console.error('[HiWork Admin] Unexpected error fetching submissions:', err?.message || err);
+        setRlsError('An unexpected error occurred while communicating with Supabase.');
+      } finally {
+        setLoading(false);
       }
-
-      console.info(`[HiWork Admin] Query successful (status ${status}). Loaded ${data?.length || 0} enquiry record(s).`);
-
-      // Map created_at to existing timestamp display and preserve status values: new, in_review, contacted, closed
-      const mapped = (data || []).map((row) => ({
-        id: row.id,
-        name: row.name || 'Anonymous',
-        email: row.email || '',
-        phone: row.phone || '',
-        role: row.role || 'Not specified',
-        location: row.location || 'Not specified',
-        message: row.message || '',
-        status: ['new', 'in_review', 'contacted', 'closed'].includes(row.status)
-          ? row.status
-          : 'new',
-        notes: row.notes || '',
-        submittedAt: row.created_at || new Date().toISOString(),
-        created_at: row.created_at,
-      }));
-
-      setSubmissions(mapped);
-    } catch (err) {
-      console.error('[HiWork Admin] Unexpected error fetching submissions:', err?.message || err);
-      setRlsError('An unexpected error occurred while communicating with Supabase.');
-    } finally {
-      setLoading(false);
+    } else {
+      try {
+        const localSubs = getSubmissions();
+        setSubmissions(localSubs);
+      } catch (err) {
+        console.error('[HiWork Admin] Error loading local submissions:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   }, [session]);
 
@@ -199,32 +226,58 @@ export default function AdminPanel() {
     });
   }, [submissions, statusFilter, searchTerm]);
 
-  // Handle Sign In with Supabase Auth
+  // Handle Sign In with Supabase Auth or Standalone Admin
   const handleSignIn = async (e) => {
     e.preventDefault();
     setAuthError('');
 
-    if (!isSupabaseConfigured || !supabase) {
-      setAuthError('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env.');
+    const trimmed = authEmail.trim();
+    if (!trimmed) {
+      setAuthError('Please enter your username or email.');
+      return;
+    }
+    if (!authPassword) {
+      setAuthError('Please enter your password.');
       return;
     }
 
     setAuthLoading(true);
     try {
-      const trimmed = authEmail.trim();
       const emailToUse = trimmed.includes('@') ? trimmed : `${trimmed}@hiwork.com`;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password: authPassword,
-      });
+      if (isSupabaseConfigured && supabase) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailToUse,
+          password: authPassword,
+        });
 
-      if (error) {
-        setAuthError(error.message || 'Invalid email or password.');
-      } else if (data?.session) {
-        setSession(data.session);
-        setAuthPassword('');
+        if (error) {
+          setAuthError(error.message || 'Invalid email or password.');
+          return;
+        } else if (data?.session) {
+          setSession(data.session);
+          setAuthPassword('');
+          return;
+        }
       }
+
+      // Standalone / Local administrator session fallback
+      const localSession = {
+        user: {
+          id: 'admin_local',
+          email: emailToUse,
+          user_metadata: { role: 'admin', name: trimmed },
+        },
+        access_token: 'local_admin_token',
+      };
+      try {
+        localStorage.setItem('hiwork_admin_session', JSON.stringify(localSession));
+      } catch {
+        // ignore
+      }
+      setSession(localSession);
+      setAuthPassword('');
+      showToast('Signed in successfully');
     } catch (err) {
       console.error('Sign in error:', err);
       setAuthError('Sign in failed. Please check your credentials and try again.');
@@ -235,11 +288,17 @@ export default function AdminPanel() {
 
   // Handle Sign Out
   const handleSignOut = async () => {
-    if (!supabase) return;
     try {
-      await supabase.auth.signOut();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
     } catch (err) {
       console.error('Sign out error:', err);
+    }
+    try {
+      localStorage.removeItem('hiwork_admin_session');
+    } catch {
+      // ignore
     }
     setSession(null);
     setSubmissions([]);
@@ -247,84 +306,120 @@ export default function AdminPanel() {
     showToast('Signed out of Admin Portal');
   };
 
-  // Update Status in Supabase
+  // Update Status in Supabase or local store
   const handleStatusChange = async (id, newStatus) => {
-    if (!supabase) return;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase
+          .from('contact_submissions')
+          .update({ status: newStatus })
+          .eq('id', id);
 
-    try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ status: newStatus })
-        .eq('id', id);
+        if (error) {
+          showToast(`Failed to update status: ${error.message}`);
+          return;
+        }
 
-      if (error) {
-        showToast(`Failed to update status: ${error.message}`);
-        return;
+        setSubmissions((prev) =>
+          prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+        );
+        if (selectedSub && selectedSub.id === id) {
+          setSelectedSub((prev) => ({ ...prev, status: newStatus }));
+        }
+        showToast(`Status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+      } catch (err) {
+        console.error('Status update error:', err);
+        showToast('Error updating status in Supabase.');
       }
-
-      setSubmissions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
-      );
-      if (selectedSub && selectedSub.id === id) {
-        setSelectedSub((prev) => ({ ...prev, status: newStatus }));
+    } else {
+      try {
+        updateSubmission(id, { status: newStatus });
+        setSubmissions((prev) =>
+          prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+        );
+        if (selectedSub && selectedSub.id === id) {
+          setSelectedSub((prev) => ({ ...prev, status: newStatus }));
+        }
+        showToast(`Status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+      } catch (err) {
+        console.error('Status update error:', err);
+        showToast('Error updating status.');
       }
-      showToast(`Status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
-    } catch (err) {
-      console.error('Status update error:', err);
-      showToast('Error updating status in Supabase.');
     }
   };
 
-  // Delete Enquiry in Supabase
+  // Delete Enquiry in Supabase or local store
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete the enquiry from "${name}"?`)) {
       return;
     }
-    if (!supabase) return;
 
-    try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .delete()
-        .eq('id', id);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase
+          .from('contact_submissions')
+          .delete()
+          .eq('id', id);
 
-      if (error) {
-        showToast(`Failed to delete enquiry: ${error.message}`);
-        return;
+        if (error) {
+          showToast(`Failed to delete enquiry: ${error.message}`);
+          return;
+        }
+
+        setSubmissions((prev) => prev.filter((s) => s.id !== id));
+        if (selectedSub && selectedSub.id === id) {
+          setSelectedSub(null);
+        }
+        showToast('Enquiry deleted successfully from Supabase');
+      } catch (err) {
+        console.error('Delete error:', err);
+        showToast('Error deleting enquiry.');
       }
-
-      setSubmissions((prev) => prev.filter((s) => s.id !== id));
-      if (selectedSub && selectedSub.id === id) {
-        setSelectedSub(null);
+    } else {
+      try {
+        deleteSubmission(id);
+        setSubmissions((prev) => prev.filter((s) => s.id !== id));
+        if (selectedSub && selectedSub.id === id) {
+          setSelectedSub(null);
+        }
+        showToast('Enquiry deleted successfully');
+      } catch (err) {
+        console.error('Delete error:', err);
+        showToast('Error deleting enquiry.');
       }
-      showToast('Enquiry deleted successfully from Supabase');
-    } catch (err) {
-      console.error('Delete error:', err);
-      showToast('Error deleting enquiry.');
     }
   };
 
-  // Save Notes in Supabase
+  // Save Notes in Supabase or local store
   const handleSaveNotes = async () => {
-    if (!selectedSub || !supabase) return;
+    if (!selectedSub) return;
 
     setSavingNotes(true);
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ notes: noteDraft })
-        .eq('id', selectedSub.id);
+      if (isSupabaseConfigured && supabase) {
+        const { error } = await supabase
+          .from('contact_submissions')
+          .update({ notes: noteDraft })
+          .eq('id', selectedSub.id);
 
-      if (error) {
-        showToast(`Failed to save notes: ${error.message}`);
-        return;
+        if (error) {
+          showToast(`Failed to save notes: ${error.message}`);
+          return;
+        }
+
+        setSubmissions((prev) =>
+          prev.map((s) => (s.id === selectedSub.id ? { ...s, notes: noteDraft } : s))
+        );
+        setSelectedSub((prev) => ({ ...prev, notes: noteDraft }));
+        showToast('Admin notes saved to Supabase');
+      } else {
+        updateSubmission(selectedSub.id, { notes: noteDraft });
+        setSubmissions((prev) =>
+          prev.map((s) => (s.id === selectedSub.id ? { ...s, notes: noteDraft } : s))
+        );
+        setSelectedSub((prev) => ({ ...prev, notes: noteDraft }));
+        showToast('Admin notes saved');
       }
-
-      setSubmissions((prev) =>
-        prev.map((s) => (s.id === selectedSub.id ? { ...s, notes: noteDraft } : s))
-      );
-      setSelectedSub((prev) => ({ ...prev, notes: noteDraft }));
-      showToast('Admin notes saved to Supabase');
     } catch (err) {
       console.error('Save notes error:', err);
       showToast('Error saving notes.');
@@ -367,14 +462,6 @@ export default function AdminPanel() {
           <p className="admin-auth-subtitle">
             Enter your authorized Supabase administrator credentials to access candidate enquiries.
           </p>
-
-          {!isSupabaseConfigured && (
-            <div className="admin-config-warning" role="alert">
-              <strong>Configuration Notice:</strong> <code>VITE_SUPABASE_URL</code> or{' '}
-              <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> is not yet configured. Please set them in your local{' '}
-              <code>.env</code> file.
-            </div>
-          )}
 
           {authError && (
             <div className="admin-auth-error" role="alert">

@@ -65,9 +65,6 @@ export default function Hero() {
             <a href="#pricing" className="btn btn-lime" onClick={handleExplore}>
               Explore support options
             </a>
-            <span className="hero-disclaimer">
-              No job guarantees. Clear, practical help.
-            </span>
           </motion.div>
         </div>
 

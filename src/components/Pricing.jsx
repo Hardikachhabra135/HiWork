@@ -2,6 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './Pricing.css';
 
+const STARTER_FEATURES = [
+  'Relevant job recommendations',
+  'Up to 2 recommendations each week',
+  '1 tailored CV each week, when required details are provided',
+  'Job-search setup',
+  'Email support and monthly reminders',
+];
+
+const GROWTH_FEATURES = [
+  'Up to 5 recommendations each week',
+  'Tailored CV support within agreed limits',
+  '1 tailored cover letter in the initial package',
+  'Resume review, skill-gap analysis, WhatsApp support and reminders',
+  'Skill gap',
+  'WhatsApp and reminder',
+];
+
 const cardVariants = {
   hidden: { opacity: 0, y: 32 },
   visible: (i) => ({
@@ -14,8 +31,8 @@ const cardVariants = {
 function BulletList({ items, dark }) {
   return (
     <ul className={`pricing-bullets${dark ? ' pricing-bullets--dark' : ''}`} aria-label="Plan features">
-      {items.map((item) => (
-        <li key={item} className="pricing-bullet">
+      {items.map((item, idx) => (
+        <li key={`${item}-${idx}`} className="pricing-bullet">
           <span className="pricing-bullet__dot" aria-hidden="true"></span>
           {item}
         </li>
@@ -57,15 +74,18 @@ export default function Pricing() {
             </div>
             <span className="pricing-badge">INTRO OFFER INR 1,099 / 3 MONTHS</span>
 
-            <BulletList
-              items={[
-                'Up to 2 recommendations each week',
-                '1 tailored CV each week, when details are provided',
-                'Job-search setup, email support and monthly reminders',
-              ]}
-            />
+            <div className="pricing-features-wrap">
+              <BulletList items={STARTER_FEATURES} />
+            </div>
 
-            <a href="#contact" className="btn btn-dark pricing-cta" onClick={(e) => { e.preventDefault(); document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' }); }}>
+            <a
+              href="#contact"
+              className="btn btn-dark pricing-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Get started
             </a>
           </motion.div>
@@ -86,18 +106,19 @@ export default function Pricing() {
             </div>
             <span className="pricing-badge pricing-badge--outline">INTRO OFFER INR 2,499 / 3 MONTHS</span>
 
-            <p className="pricing-everything">Everything in Starter, plus:</p>
+            <div className="pricing-features-wrap">
+              <p className="pricing-everything">Everything in Starter, plus:</p>
+              <BulletList dark items={GROWTH_FEATURES} />
+            </div>
 
-            <BulletList
-              dark
-              items={[
-                'Up to 5 recommendations each week',
-                'Cover letter, resume review and skill-gap analysis',
-                'WhatsApp support and weekly or monthly reminders',
-              ]}
-            />
-
-            <a href="#contact" className="btn btn-lime pricing-cta" onClick={(e) => { e.preventDefault(); document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' }); }}>
+            <a
+              href="#contact"
+              className="btn btn-lime pricing-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Get started
             </a>
           </motion.div>

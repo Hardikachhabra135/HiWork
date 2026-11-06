@@ -28,8 +28,9 @@
 /* ── Grid ───────────────────────────────────────────────── */
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+  align-items: stretch;
 }
 
 /* ── Card ───────────────────────────────────────────────── */
@@ -37,12 +38,13 @@
   background: var(--color-white);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 32px 28px 36px;
+  padding: 32px 24px 36px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   transition: box-shadow var(--transition);
   cursor: default;
+  height: 100%;
 }
 
 .service-card__num {
@@ -59,19 +61,25 @@
 .service-card__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 20px;
+  font-size: 24px;
   color: var(--color-ink);
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .service-card__desc {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--color-muted-light);
-  line-height: 1.65;
+  line-height: 1.6;
   flex: 1;
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   .services-grid {
     grid-template-columns: 1fr;

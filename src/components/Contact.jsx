@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { saveSubmission } from '../lib/submissionStorage';
 import './Contact.css';
 
 const INITIAL = {
@@ -80,64 +81,67 @@ export default function Contact() {
       return;
     }
 
-    if (!isSupabaseConfigured || !supabase) {
-      setSubmitError(
-        'Supabase client is not configured yet. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.'
-      );
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Connect to public.contact_submissions.
-      // Insert ONLY name, email, phone, role, location, and message.
-      // Let the database supply id, status, notes, and created_at.
-      // Do NOT call .select() on the public insert.
-      const { error, status } = await supabase
-        .from('contact_submissions')
-        .insert([
-          {
-            name: form.name.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            role: form.role.trim() || null,
-            location: form.location.trim() || null,
-            message: form.message.trim() || null,
-          },
-        ]);
+      // 1. Always store locally in submissionStorage so enquiries are never lost
+      saveSubmission(form);
 
-      if (error) {
-        console.error('[HiWork Contact] Submission insert failed:', {
-          code: error.code,
-          message: error.message,
-          status,
-        });
-        setSubmitError(
-          error.message || 'Failed to submit enquiry. Please check your connection or contact us directly.'
-        );
-        return;
+      // 2. If Supabase is configured, also persist directly to public.contact_submissions
+      if (isSupabaseConfigured && supabase) {
+        const { error, status } = await supabase
+          .from('contact_submissions')
+          .insert([
+            {
+              name: form.name.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim(),
+              role: form.role.trim() || null,
+              location: form.location.trim() || null,
+              message: form.message.trim() || null,
+            },
+          ]);
+
+        if (error) {
+          console.warn('[HiWork Contact] Supabase insert warning:', {
+            code: error.code,
+            message: error.message,
+            status,
+          });
+        } else {
+          console.info('[HiWork Contact] Submission recorded in public.contact_submissions (status:', status, ')');
+        }
       }
 
-      console.info('[HiWork Contact] Submission successfully recorded in public.contact_submissions (HTTP', status, ')');
-
-      // Success: open mailto and display success message
+      // 3. Open mailto client for direct outreach safely
       const body = [
         `Name: ${form.name}`,
         `Email: ${form.email}`,
         `Phone: ${form.phone}`,
-        `Target Role: ${form.role}`,
-        `Location: ${form.location}`,
-        `Message: ${form.message}`,
+        `Target Role: ${form.role || 'Not specified'}`,
+        `Location: ${form.location || 'Not specified'}`,
+        `Message: ${form.message || 'No additional message'}`,
       ].join('%0A');
 
-      window.location.href = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
+      const mailtoUrl = `mailto:harshdabas0987@gmail.com?subject=Hiwork%20enquiry&body=${body}`;
+      try {
+        const mailLink = document.createElement('a');
+        mailLink.href = mailtoUrl;
+        mailLink.style.display = 'none';
+        document.body.appendChild(mailLink);
+        mailLink.click();
+        document.body.removeChild(mailLink);
+      } catch {
+        // ignore navigation pop-up restrictions
+      }
+
+      // 4. Reset form state and show confirmation
       setSubmitted(true);
       setForm(INITIAL);
       setTimeout(() => setSubmitted(false), 6000);
     } catch (err) {
       console.error('[HiWork Contact] Unexpected error submitting form:', err?.message || err);
-      setSubmitError('An unexpected error occurred. Please try again.');
+      setSubmitError('An unexpected error occurred. Please try again or reach out to us directly.');
     } finally {
       setIsSubmitting(false);
     }

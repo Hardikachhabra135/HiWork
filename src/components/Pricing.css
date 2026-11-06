@@ -117,7 +117,15 @@
   color: var(--color-lime);
 }
 
-/* ── Bullets ────────────────────────────────────────────── */
+/* ── Features Wrapper & Bullets ──────────────────────────── */
+.pricing-features-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
 .pricing-bullets {
   display: flex;
   flex-direction: column;
@@ -179,6 +187,10 @@
 
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 680px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+
   .pricing-card {
     padding: 28px 24px 32px;
   }

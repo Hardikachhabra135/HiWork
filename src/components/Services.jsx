@@ -5,23 +5,43 @@ import './Services.css';
 const CARDS = [
   {
     num: '01',
-    title: 'Find suitable jobs',
-    desc: 'Recommendations matched to your role, location, education and experience.',
+    title: 'Job recommendations',
+    desc: 'Opportunities matched to preferred role, location, education, experience and other preferences.',
   },
   {
     num: '02',
-    title: 'Build stronger applications',
-    desc: 'Tailored CVs and cover letters using your real skills and experience.',
+    title: 'Tailored CVs',
+    desc: 'Role-focused CVs built from your genuine skills, education, projects and experience.',
   },
   {
     num: '03',
-    title: 'Improve your job-search setup',
-    desc: 'Role and platform planning, resume review and skill-gap analysis.',
+    title: 'Cover letters',
+    desc: 'Opportunity-specific letters that reflect your real background and strengths.',
   },
   {
     num: '04',
-    title: 'Stay organised and supported',
-    desc: 'Email or WhatsApp support, plus reminders for applications and follow-ups.',
+    title: 'Job-search setup',
+    desc: 'Help defining target roles, locations, platforms, search terms and application preferences.',
+  },
+  {
+    num: '05',
+    title: 'Resume review',
+    desc: 'Feedback on structure, clarity, grammar, relevance and formatting.',
+  },
+  {
+    num: '06',
+    title: 'Skill-gap analysis',
+    desc: 'A comparison of your profile with target-role requirements, plus practical areas to build.',
+  },
+  {
+    num: '07',
+    title: 'Email & WhatsApp support',
+    desc: 'Access to the communication channels included in your plan, with clear response expectations.',
+  },
+  {
+    num: '08',
+    title: 'Reminders',
+    desc: 'Weekly or monthly prompts to support applications, skill development and follow-ups.',
   },
 ];
 
@@ -30,7 +50,7 @@ const cardVariants = {
   visible: (i) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 },
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: (i % 4) * 0.08 },
   }),
 };
 
@@ -40,7 +60,7 @@ export default function Services() {
       <div className="container">
         {/* Section header */}
         <div className="services-header">
-          <span className="eyebrow services-eyebrow">Services</span>
+          <span className="eyebrow services-eyebrow">SERVICES</span>
           <h2 id="services-heading" className="section-heading services-heading">
             Practical help at every step
           </h2>
