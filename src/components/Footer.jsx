@@ -16,8 +16,24 @@ export default function Footer() {
 
         {/* Footer nav */}
         <nav className="footer-nav" aria-label="Footer navigation">
-          <a href="#privacy" className="footer-nav__link">Privacy</a>
-          <a href="#terms"   className="footer-nav__link">Terms</a>
+          <a
+            href="/privacy"
+            className="footer-nav__link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Privacy Policy (opens in a new tab)"
+          >
+            Privacy
+          </a>
+          <a
+            href="/terms"
+            className="footer-nav__link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Terms of Service (opens in a new tab)"
+          >
+            Terms
+          </a>
         </nav>
       </div>
     </footer>
